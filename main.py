@@ -26,7 +26,7 @@ noise = OUNoise(env.action_space.shape[0],0)
 agent = DDPG(env,device)
 # agent = DDPGPer(env,device)
 reward_scaling = 1
-batch_size = 64 
+batch_size = 32 
 print(f"Device now: {device}")
 for episode in range(3000):
     score = 0 
