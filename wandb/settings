@@ -1,0 +1,5 @@
+[default]
+entity = zhangzhew1119
+project = DDPG
+base_url = https://api.wandb.ai
+
