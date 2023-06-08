@@ -24,8 +24,8 @@ class ReplayBuffer(object):
         self.done_batch[index] = done
 
         self.mem_cntr += 1 
-        if self.mem_cntr == self.mem_size:
-            print(f"I have reached to my MAX !!!")
+        # if self.mem_cntr == self.mem_size:
+        #     # print(f"I have reached to my MAX !!!")
     
     def sample(self,batch_size):
         sample_range = min(self.mem_cntr,self.mem_size)

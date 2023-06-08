@@ -9,7 +9,7 @@ class Critic(nn.Module):
         self.linear1 = nn.Linear(input_size,hid_size)
         self.linear2 = nn.Linear(hid_size,hid_size)
         self.linear3 = nn.Linear(hid_size,output_size)
-        # self.network_init()
+        self.network_init()
 
     def forward(self,state,action):
         x = torch.cat((state,action),-1)
@@ -19,13 +19,13 @@ class Critic(nn.Module):
     
         return x 
     
-    '''
+    
     def network_init(self):
         for layer in self.modules():
             if isinstance(layer, nn.Linear):
                 nn.init.orthogonal_(layer.weight)
                 layer.bias.data.zero_() 
-    '''
+  
 
 class Actor(nn.Module):
     def __init__(self,input_size,hid_size,output_size):
@@ -33,7 +33,7 @@ class Actor(nn.Module):
         self.linear1 = nn.Linear(input_size,hid_size)
         self.linear2 = nn.Linear(hid_size,hid_size)
         self.linear3 = nn.Linear(hid_size,output_size)
-        # self.network_init()
+        self.network_init()
         
     def forward(self,state):
         x = F.relu(self.linear1(state))
@@ -42,11 +42,11 @@ class Actor(nn.Module):
         
         return x 
     
-    '''
+    
     def network_init(self):
         for layer in self.modules():
             if isinstance(layer, nn.Linear):
                 nn.init.orthogonal_(layer.weight)
                 layer.bias.data.zero_() 
     
-    '''
+    

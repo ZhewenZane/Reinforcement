@@ -3,31 +3,32 @@ import torch.autograd
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 from network import *
 from replay import ReplayBuffer, PeReplay
-from utils import convert_to_tensor
+from utils import convert_to_tensor, OUNoise  
 
 
 class DDPG(object):
-    def __init__(self,env,device,hid_size=256,actor_learning_rate=3e-4,critic_learning_rate=3e-4,gamma=0.99,tau=0.005,max_memory_size=1000000):
+    def __init__(self,env,device,hid_size=256,actor_learning_rate=1e-4,critic_learning_rate=1e-3,gamma=0.99,tau=0.001,max_memory_size=1000000):
         self.gamma=gamma 
         self.tau=tau
         self.action_size = env.action_space.shape[0]
         self.state_size = env.observation_space.shape[0]
         self.max_memory_size = max_memory_size
         self.device = device 
-
+        # self.noise = OUNoise(self.action_size,666)
         # Networks 
         self.actor = Actor(self.state_size,hid_size,self.action_size).to(self.device)
         self.actor_target = Actor(self.state_size,hid_size,self.action_size).to(self.device)
         self.critic = Critic(self.state_size+self.action_size,hid_size,1).to(self.device)
         self.critic_target = Critic(self.state_size+self.action_size,hid_size,1).to(self.device)
 
-        for target_param, param in zip(self.actor.parameters(),self.actor_target.parameters()):
+        for target_param, param in zip(self.actor_target.parameters(),self.actor.parameters()):
             target_param.data.copy_(param.data)
 
-        for target_param, param in zip(self.critic.parameters(),self.critic_target.parameters()):
+        for target_param, param in zip(self.critic_target.parameters(),self.critic.parameters()):
             target_param.data.copy_(param.data)
 
         
@@ -41,6 +42,8 @@ class DDPG(object):
         state = torch.from_numpy(state).to(torch.float32).to(self.device)
         action = self.actor.forward(state)
         action = action.cpu().detach().numpy()
+        # noise = self.noise.sample()
+        # action = np.clip(action + noise,-1,1)
 
         return action
 
@@ -62,7 +65,7 @@ class DDPG(object):
         Qvals = self.critic.forward(states,actions)
         next_actions = self.actor_target.forward(next_states)
         next_Q = self.critic_target.forward(next_states,next_actions)
-        Qprime = rewards + self.gamma * next_Q
+        Qprime = rewards + (~dones)*self.gamma * next_Q
         critic_loss = self.critic_criterion(Qvals,Qprime.detach())
 
         # Actor Loss 
