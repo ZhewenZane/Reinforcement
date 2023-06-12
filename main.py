@@ -22,7 +22,7 @@ import wandb
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-env = gym.make('Ant-v4',render_mode=None)
+env = gym.make('Ant-v4',render_mode=None,use_contact_forces=True)
 
 agent = DDPG(env,device)
 # agent = DDPGPer(env,device)
@@ -36,11 +36,11 @@ print(f"Device now: {device}")
 for episode in range(3000): 
     score = 0 
     state = env.reset()[0]
-    # step = 0
-    # done = False
+    step = 0
+    done = False
     # print(f"Episode {episode}")
-    for step in range(6001):
-    # while not done:
+    # for step in range(5001):
+    while not done:
         action= noise.get_action(agent.get_action(state),t=step)
         next_state,reward,done,truncate,_ = env.step(action)
         agent.memory.push(state,action,next_state,reward,done)
@@ -50,8 +50,8 @@ for episode in range(3000):
 
         state = next_state
         score += reward 
-        # step += 1 
-        if done: 
+        step += 1 
+        if truncate: 
             break
         
     # print(f"The length of the Memory after episode {episode} is {len(agent.memory)}")
