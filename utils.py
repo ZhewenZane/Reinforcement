@@ -17,7 +17,6 @@ def convert_to_tensor(states,actions,next_states,rewards,dones):
 
 
 
-
 class OUNoise(object):
     def __init__(self, action_space, mu=0.0, theta=0.1, max_sigma=0.1, min_sigma=0.05, decay_period=100000):
         self.mu           = mu
@@ -44,7 +43,8 @@ class OUNoise(object):
         ou_state = self.evolve_state()
         self.sigma = self.max_sigma - (self.max_sigma - self.min_sigma) * min(1.0, t / self.decay_period)
         return np.clip(action + ou_state, self.low, self.high)
-    
+
+
 
 
 '''
@@ -74,4 +74,5 @@ class OUNoise:
         dx = self.theta * (self.mu - x) + self.sigma * np.random.standard_normal(self.size)
         self.state = x + dx
         return self.state
+
 '''

@@ -11,7 +11,7 @@ from utils import convert_to_tensor, OUNoise
 
 
 class DDPG(object):
-    def __init__(self,env,device,hid_size=256,actor_learning_rate=1e-4,critic_learning_rate=1e-3,gamma=0.99,tau=0.001,max_memory_size=1000000):
+    def __init__(self,env,device,hid_size=256,actor_learning_rate=3e-4,critic_learning_rate=3e-4,gamma=0.99,tau=0.005,max_memory_size=1000000):
         self.gamma=gamma 
         self.tau=tau
         self.action_size = env.action_space.shape[0]
@@ -93,7 +93,7 @@ class DDPG(object):
 
 
 class DDPGPer(object):
-    def __init__(self,env,device,hid_size=256,actor_learning_rate=1e-4,critic_learning_rate=1e-3,gamma=0.99,tau=1e-2,max_memory_size=1000000,alpha=0.7,beta=0.5,epsilon=1e-6):
+    def __init__(self,env,device,hid_size=256,actor_learning_rate=3e-4,critic_learning_rate=1e-3,gamma=0.99,tau=1e-2,max_memory_size=1000000,alpha=0.7,beta=0.5,epsilon=1e-6):
         self.gamma=gamma 
         self.tau=tau
         self.action_size = env.action_space.shape[0]
@@ -130,8 +130,8 @@ class DDPGPer(object):
         return action
 
     def update(self,batch_size):
-        states,actions,next_states,rewards,_,indexes,priorities = self.memory.sample(batch_size) # priorities used for weights calculations
-        states,actions,next_states,rewards = convert_to_tensor(states,actions,next_states,rewards)
+        states,actions,next_states,rewards,dones,indexes,priorities = self.memory.sample(batch_size) # priorities used for weights calculations
+        states,actions,next_states,rewards,dones = convert_to_tensor(states,actions,next_states,rewards,dones)
         # rewards = torch.unsqueeze(rewards,1) # This is for making the rewards' shape the same as next_Q below 
         # print(f"States Shape:{states.shape}, Action Shape: {actions.shape}, Next_States's shape: {next_states.shape}, Rewards Shape:{rewards.shape}")
         
@@ -140,12 +140,13 @@ class DDPGPer(object):
         actions  = actions.to(self.device)
         next_states = next_states.to(self.device)
         rewards = rewards.to(self.device)
+        dones =dones.to(self.device)
 
         # Critic Loss 
         Qvals = self.critic.forward(states,actions)
         next_actions = self.actor_target.forward(next_states)
         next_Q = self.critic_target.forward(next_states,next_actions.detach())
-        Qprime = rewards + self.gamma * next_Q
+        Qprime = rewards + (~dones)*self.gamma * next_Q
         # Calculate weights bias and update critic loss
         priorities_tensor = torch.from_numpy(priorities).to(self.device)
         weights = torch.pow(batch_size*priorities_tensor,-self.beta*0.5)
